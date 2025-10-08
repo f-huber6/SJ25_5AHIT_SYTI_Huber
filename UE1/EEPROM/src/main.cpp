@@ -1,6 +1,10 @@
 #include <Arduino.h>
 #include <avr/eeprom.h>
 #include <lcd.h>
+#include <cstdlib>
+#include <util/delay.h>
+#include <avr/interrupt.h>
+
 #define F_CPU 16000000UL
 
 volatile uint8_t updateFlag1 = 0;
