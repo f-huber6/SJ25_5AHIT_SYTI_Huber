@@ -4,6 +4,9 @@
 
 #define F_CPU 16000000UL
 
+//Mit <>-Klammern würde er im Compiler-Standardpfad suchen, mit "" sucht er im Projektverzeichnis
+//DHT11 liefert nur Ganzzahlen, DHT22 auch Nachkommastellen
+
 int8_t currentTemp;
 int8_t currentHumidity;
 int8_t errorStatus;
@@ -40,6 +43,11 @@ void print_values(const int8_t temp, const int8_t hum)
     lcd_puts("%");
 
     _delay_ms(DHT_TIMEOUT);
+}
+
+void init_timer1()
+{
+
 }
 
 int main()
