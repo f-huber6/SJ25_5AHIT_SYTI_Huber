@@ -1,9 +1,10 @@
-#include <Arduino.h>
+#define F_CPU 16000000UL
+
+#include <avr/io.h>
+#include <avr/interrupt.h>
 #include "lcd.h"
 #include "dht.h"
 #include <util/delay.h>
-
-#define F_CPU 16000000UL
 
 //Start Text sozusagem
 #define STX 0x02
@@ -11,25 +12,25 @@
 //End Text sozusagen
 #define ETX 0x03
 
+//Ackknowledge
 #define ACK 0x06
 #define MAX_RETRIES 3
-
-//Mit <>-Klammern würde er im Compiler-Standardpfad suchen, mit "" sucht er im Projektverzeichnis
-//DHT11 liefert nur Ganzzahlen, DHT22 auch Nachkommastellen
 
 int8_t currentTemp;
 int8_t currentHumidity;
 int8_t errorStatus;
 
-//Variablen für Step 3
 volatile uint8_t send_Interval = 1;
 volatile uint8_t second_counter = 0;
 volatile char last_rx_char = 0;
 
-volatile uint8_t seq_num = 1;
 volatile uint8_t ack_received = 0;
 volatile uint8_t retry_count = 0;
 volatile uint8_t sending_enabled = 1;
+volatile uint8_t sequence_number = 0;
+volatile uint8_t waiting_for_ack = 0;
+volatile uint8_t ack_flag = 0;
+volatile uint8_t fan_state = 0;
 
 //ASCII-Zeichen
 //0x31 = 1, 0x34 = 4
@@ -95,17 +96,16 @@ void print_values(const int8_t temp, const int8_t hum)
     lcd_puts("Humid: ");
     lcd_puts(humBuffer);
     lcd_puts("%");
-
-    _delay_ms(DHT_TIMEOUT);
 }
 
 void init_timer1()
 {
-    TCCR1B |= (1 << WGM12);
-    TCCR1B |= (1 << CS12);
+    TCCR1B |= (1 << WGM12);   // CTC
+    TCCR1B |= (1 << CS12);    // Prescaler 256
+    OCR1A = 62499;            // 1 Sekunde bei 16 MHz
     TIMSK1 |= (1 << OCIE1A);
-    OCR1A = 62499;
 }
+
 
 void process_uart()
 {
@@ -128,7 +128,18 @@ void send_data_message()
         "DATE%d|HU%d|SN%d",
             currentTemp,
             currentHumidity,
-            seq_num);
+            sequence_number);
+
+    uart_sendChar(STX);
+    uart_sendString(buffer);
+    uart_sendChar(ETX);
+}
+
+void send_fan_status()
+{
+    char buffer[20];
+
+    sprintf(buffer, "FAN%d", fan_state);
 
     uart_sendChar(STX);
     uart_sendString(buffer);
@@ -141,6 +152,13 @@ int main()
     uart_init();
     init_lcd();
     init_timer1();
+
+    DDRC |= (1 << PC1);
+    PORTC &= ~(1 << PC1);
+
+    DDRD |= (1 << PD2);
+    PORTD &= ~(1 << PD2);
+
     sei();
 
     while(1)
@@ -148,6 +166,14 @@ int main()
         init_dht11();
         print_values(currentTemp, currentHumidity);
         process_uart();
+
+        if(ack_flag)
+        {
+            sequence_number++;
+            waiting_for_ack = 0;
+            retry_count = 0;
+            ack_flag = 0;
+        }
     }
 }
 
@@ -162,35 +188,28 @@ ISR(TIMER1_COMPA_vect)
     {
         second_counter = 0;
 
-        if(!ack_received)
+        if(!waiting_for_ack)
         {
-            if(retry_count >= MAX_RETRIES)
-            {
-                sending_enabled = 0;
-                return;
-            }
-
             send_data_message();
-            retry_count++;
+            waiting_for_ack = 1;
+            retry_count = 0;
         }
-
         else
         {
-            ack_received = 0;
-            retry_count = 0;
-            seq_num++;
-
-            send_data_message();
+            if(retry_count < MAX_RETRIES)
+            {
+                send_data_message();
+                retry_count++;
+            }
+            else
+            {
+                sending_enabled = 0;
+                PORTC |= (1 << PC1);
+            }
         }
-
-        char buffer[10];
-        sprintf(buffer, "%d%d", currentTemp, currentHumidity);
-
-        uart_sendChar(STX);
-        uart_sendString(buffer);
-        uart_sendChar(ETX);
     }
 }
+
 
 ISR(USART_RX_vect)
 {
@@ -198,19 +217,54 @@ ISR(USART_RX_vect)
 
     if(rx == ACK)
     {
-        ack_received = 1;
+        ack_flag = 1;
     }
 
     else if(rx == 'r')
     {
         sending_enabled = 1;
         retry_count = 0;
-        ack_received = 0;
+        waiting_for_ack = 0;
+        PORTC &= ~(1 << PC1);
+    }
+
+    else if(rx == 'd')
+    {
+        sending_enabled = 1;
+        retry_count = 0;
+        waiting_for_ack = 0;
+        second_counter = 0;
+        PORTC &= ~(1 << PC1);
+    }
+
+    else if(rx == 'q')
+    {
+        sending_enabled = 0;
+        retry_count = 0;
+        waiting_for_ack = 0;
+        second_counter = 0;
+        PORTC |= (1 << PC1);
+    }
+
+    else if(rx == 'e')
+    {
+        fan_state = 1;
+        PORTD |= (1 << PD2);
+    }
+
+    else if(rx == 'a')
+    {
+        fan_state = 0;
+        PORTD &= ~(1 << PD2);
+    }
+
+    else if(rx == 's')
+    {
+        send_fan_status();
     }
 
     else
     {
         last_rx_char = rx;
     }
-
 }
