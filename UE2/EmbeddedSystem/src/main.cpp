@@ -1,12 +1,5 @@
 #define F_CPU 16000000UL
-
-#include <avr/io.h>
-#include <avr/interrupt.h>
-#include "lcd.h"
-#include "dht.h"
-#include <util/delay.h>
-
-//Start Text sozusagem
+//Start Text sozusagen
 #define STX 0x02
 
 //End Text sozusagen
@@ -15,6 +8,13 @@
 //Ackknowledge
 #define ACK 0x06
 #define MAX_RETRIES 3
+
+#include <avr/io.h>
+#include <avr/interrupt.h>
+#include "lcd.h"
+#include "dht.h"
+#include <stdio.h>
+#include <util/delay.h>
 
 int8_t currentTemp;
 int8_t currentHumidity;
