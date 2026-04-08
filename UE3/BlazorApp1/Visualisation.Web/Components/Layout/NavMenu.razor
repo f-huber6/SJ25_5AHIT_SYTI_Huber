@@ -1,0 +1,25 @@
+<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">Visualisation.Web</a>
+    </div>
+</div>
+
+<input type="checkbox" id="nav-toggler" class="navbar-toggler" title="Navigation menu"/>
+<label for="nav-toggler" class="navbar-toggler-icon" title="Navigation menu">
+    <span></span><span></span><span></span>
+</label>
+
+<div class="nav-scrollable" onclick="document.getElementById('nav-toggler')?.click()">
+    <nav class="nav flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="charts">
+                <span class="bi bi-graph-up-nav-menu" aria-hidden="true"></span> Charts
+            </NavLink>
+        </div>
+    </nav>
+</div>

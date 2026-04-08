@@ -1,0 +1,20 @@
+@page "/counter"
+@rendermode InteractiveServer
+
+<PageTitle>Counter</PageTitle>
+
+<div class="dashboard-card" style="max-width: 400px;">
+    <h1 class="mb-4">Counter</h1>
+    <p role="status" class="mb-3" style="font-size: 1.25rem; color: var(--color-text-muted);">Current count: <strong style="color: var(--color-accent);">@currentCount</strong></p>
+    <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+</div>
+
+@code {
+    private int currentCount = 0;
+
+    private void IncrementCount()
+    {
+        currentCount++;
+    }
+
+}

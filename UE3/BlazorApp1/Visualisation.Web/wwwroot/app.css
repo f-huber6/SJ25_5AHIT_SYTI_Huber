@@ -1,0 +1,155 @@
+:root {
+    --color-bg: #0c1222;
+    --color-surface: #151d2e;
+    --color-surface-hover: #1e2a3d;
+    --color-border: #2a3548;
+    --color-accent: #22d3ee;
+    --color-accent-dim: #0891b2;
+    --color-accent-glow: rgba(34, 211, 238, 0.25);
+    --color-text: #e2e8f0;
+    --color-text-muted: #94a3b8;
+    --color-success: #34d399;
+    --color-warning: #fbbf24;
+    --color-danger: #f87171;
+    --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+html, body {
+    font-family: var(--font-sans);
+    background: var(--color-bg);
+    color: var(--color-text);
+    min-height: 100vh;
+    margin: 0;
+}
+
+a, .btn-link {
+    color: var(--color-accent);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--color-accent-dim), var(--color-accent));
+    border: none;
+    color: #0c1222;
+    font-weight: 600;
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px var(--color-accent-glow);
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+    box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-accent);
+}
+
+.form-control, .form-select {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
+}
+
+.form-control:focus, .form-select:focus {
+    background: var(--color-surface);
+    border-color: var(--color-accent);
+    color: var(--color-text);
+}
+
+.form-control::placeholder {
+    color: var(--color-text-muted);
+}
+
+.content {
+    padding-top: 1.5rem;
+}
+
+h1, h2, h3, h4 {
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+h1:focus {
+    outline: none;
+}
+
+.valid.modified:not([type=checkbox]) {
+    outline: 1px solid var(--color-success);
+}
+
+.invalid {
+    outline: 1px solid var(--color-danger);
+}
+
+.validation-message {
+    color: var(--color-danger);
+}
+
+/* Card styling */
+.dashboard-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+}
+
+/* Blazor error UI */
+.blazor-error-boundary {
+    background: linear-gradient(135deg, #7f1d1d, #991b1b);
+    padding: 1rem 1rem 1rem 3.7rem;
+    color: white;
+}
+
+#blazor-error-ui {
+    color-scheme: dark;
+    background: var(--color-surface);
+    border-top: 2px solid var(--color-danger);
+}
+
+.darker-border-checkbox.form-check-input {
+    border-color: var(--color-border);
+}
+
+.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
+    color: var(--color-text-muted);
+}
+
+.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
+    color: var(--color-text-muted);
+}
+
+/* Sensor value display */
+.sensor-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--color-accent);
+}
+
+.sensor-unit {
+    color: var(--color-text-muted);
+    font-weight: 500;
+}
+
+/* Bootstrap overrides for dark theme */
+.table {
+    --bs-table-bg: transparent;
+    --bs-table-color: var(--color-text);
+    --bs-table-border-color: var(--color-border);
+}
+
+.table > :not(caption) > * > * {
+    border-bottom-color: var(--color-border);
+    color: var(--color-text);
+}
+
+.table thead th {
+    color: var(--color-text-muted);
+    font-weight: 600;
+}
+
+.text-muted {
+    color: var(--color-text-muted) !important;
+}

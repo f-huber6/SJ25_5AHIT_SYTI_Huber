@@ -1,0 +1,334 @@
+@page "/charts"
+@rendermode InteractiveServer
+@using BlazorApp1.Services
+@inject SensorHistoryService HistoryService
+
+<div class="dashboard">
+    <header class="dashboard-header">
+        <h1 class="dashboard-title">Messomat Visualisierung</h1>
+        <p class="dashboard-subtitle">Liniendiagramme und Device Logs</p>
+    </header>
+
+    <div class="charts-grid">
+        <section class="dashboard-card chart-card">
+            <h2 class="section-title">Temperatur</h2>
+            <div class="chart-meta">
+                <span>Aktuell: @_temperatureChart?.LatestLabel</span>
+                <span>Bereich: @_temperatureChart?.MinLabel - @_temperatureChart?.MaxLabel</span>
+            </div>
+            <div class="chart-container">
+                @if (_temperatureChart is not null)
+                {
+                    <svg class="line-chart" viewBox="0 0 460 180" preserveAspectRatio="none">
+                        <line class="axis-line" x1="48" y1="16" x2="48" y2="148" />
+                        <line class="axis-line" x1="48" y1="148" x2="448" y2="148" />
+
+                        <line class="grid-line" x1="48" y1="16" x2="448" y2="16" />
+                        <line class="grid-line" x1="48" y1="82" x2="448" y2="82" />
+                        <line class="grid-line" x1="48" y1="148" x2="448" y2="148" />
+
+                        <text class="axis-label" x="42" y="20">@_temperatureChart.MaxLabel</text>
+                        <text class="axis-label" x="42" y="86">@_temperatureChart.MidLabel</text>
+                        <text class="axis-label" x="42" y="152">@_temperatureChart.MinLabel</text>
+
+                        <path class="chart-line chart-line-temp" d="@_temperatureChart.Path" fill="none"/>
+
+                        <text class="axis-time-label" x="48" y="170" text-anchor="start">@_temperatureChart.StartTimeLabel</text>
+                        <text class="axis-time-label" x="448" y="170" text-anchor="end">@_temperatureChart.EndTimeLabel</text>
+                    </svg>
+                }
+                else
+                {
+                    <div class="chart-placeholder">Warte auf Daten...</div>
+                }
+            </div>
+        </section>
+
+        <section class="dashboard-card chart-card">
+            <h2 class="section-title">Feuchtigkeit</h2>
+            <div class="chart-meta">
+                <span>Aktuell: @_humidityChart?.LatestLabel</span>
+                <span>Bereich: @_humidityChart?.MinLabel - @_humidityChart?.MaxLabel</span>
+            </div>
+            <div class="chart-container">
+                @if (_humidityChart is not null)
+                {
+                    <svg class="line-chart" viewBox="0 0 460 180" preserveAspectRatio="none">
+                        <line class="axis-line" x1="48" y1="16" x2="48" y2="148" />
+                        <line class="axis-line" x1="48" y1="148" x2="448" y2="148" />
+
+                        <line class="grid-line" x1="48" y1="16" x2="448" y2="16" />
+                        <line class="grid-line" x1="48" y1="82" x2="448" y2="82" />
+                        <line class="grid-line" x1="48" y1="148" x2="448" y2="148" />
+
+                        <text class="axis-label" x="42" y="20">@_humidityChart.MaxLabel</text>
+                        <text class="axis-label" x="42" y="86">@_humidityChart.MidLabel</text>
+                        <text class="axis-label" x="42" y="152">@_humidityChart.MinLabel</text>
+
+                        <path class="chart-line chart-line-hum" d="@_humidityChart.Path" fill="none"/>
+
+                        <text class="axis-time-label" x="48" y="170" text-anchor="start">@_humidityChart.StartTimeLabel</text>
+                        <text class="axis-time-label" x="448" y="170" text-anchor="end">@_humidityChart.EndTimeLabel</text>
+                    </svg>
+                }
+                else
+                {
+                    <div class="chart-placeholder">Warte auf Daten...</div>
+                }
+            </div>
+        </section>
+    </div>
+
+    <section class="dashboard-card logs-card">
+        <h2 class="section-title">Device Logs</h2>
+        <div class="logs-container">
+            @if (_messages.Count == 0)
+            {
+                <p class="logs-empty">Keine Nachrichten empfangen.</p>
+            }
+            else
+            {
+                @foreach (var m in _messages.AsEnumerable().Reverse())
+                {
+                    <div class="log-line">@FormatMessage(m)</div>
+                }
+            }
+        </div>
+    </section>
+</div>
+
+<style>
+    .charts-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    @@media (max-width: 768px) {
+        .charts-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .chart-card {
+        min-height: 200px;
+    }
+
+    .chart-meta {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        font-size: 0.8rem;
+        color: var(--color-text-muted);
+        margin-bottom: 0.6rem;
+    }
+
+    .chart-container {
+        height: 180px;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: var(--radius-sm);
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .chart-placeholder {
+        color: var(--color-text-muted);
+        font-size: 0.9rem;
+    }
+
+    .line-chart {
+        width: 100%;
+        height: 100%;
+    }
+
+    .axis-line {
+        stroke: rgba(148, 163, 184, 0.55);
+        stroke-width: 1;
+    }
+
+    .grid-line {
+        stroke: rgba(148, 163, 184, 0.18);
+        stroke-width: 1;
+    }
+
+    .axis-label {
+        fill: var(--color-text-muted);
+        font-size: 10px;
+        text-anchor: end;
+    }
+
+    .axis-time-label {
+        fill: var(--color-text-muted);
+        font-size: 10px;
+    }
+
+    .chart-line {
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .chart-line-temp {
+        stroke: var(--color-accent);
+    }
+
+    .chart-line-hum {
+        stroke: var(--color-success);
+    }
+
+    .logs-card {
+        min-height: 280px;
+    }
+
+    .logs-container {
+        height: 220px;
+        overflow-y: auto;
+        padding: 1rem;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--color-border);
+        font-family: 'Consolas', 'Monaco', monospace;
+        font-size: 0.85rem;
+    }
+
+    .logs-empty {
+        color: var(--color-text-muted);
+        margin: 0;
+    }
+
+    .log-line {
+        padding: 0.2rem 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        word-break: break-all;
+    }
+</style>
+
+@implements IDisposable
+
+@code {
+    private List<SensorHistoryService.SensorDataPoint> _history = new();
+    private List<string> _messages = new();
+    private ChartModel? _temperatureChart;
+    private ChartModel? _humidityChart;
+
+    protected override void OnInitialized()
+    {
+        HistoryService.DataChanged += OnDataChanged;
+        RefreshData();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+            RefreshData();
+    }
+
+    private void OnDataChanged()
+    {
+        InvokeAsync(() =>
+        {
+            RefreshData();
+            StateHasChanged();
+        });
+    }
+
+    private void RefreshData()
+    {
+        var history = HistoryService.History;
+        var msgs = HistoryService.RawMessages;
+
+        _history = history.ToList();
+        _messages = msgs.ToList();
+        _temperatureChart = BuildChart(_history.Select(x => (double)x.Temperature).ToList(), "°C", false);
+        _humidityChart = BuildChart(_history.Select(x => (double)x.Humidity).ToList(), "%", true);
+    }
+
+    private ChartModel? BuildChart(List<double> values, string unit, bool clampZeroToHundred)
+    {
+        if (values.Count < 2 || _history.Count < 2)
+            return null;
+
+        var min = values.Min();
+        var max = values.Max();
+        var span = Math.Max(1d, max - min);
+        var pad = Math.Max(0.5d, span * 0.15d);
+
+        var scaledMin = min - pad;
+        var scaledMax = max + pad;
+
+        if (clampZeroToHundred)
+        {
+            scaledMin = Math.Max(0, scaledMin);
+            scaledMax = Math.Min(100, scaledMax);
+        }
+
+        if (Math.Abs(scaledMax - scaledMin) < 0.001)
+            scaledMax = scaledMin + 1;
+
+        var path = BuildPath(values, scaledMin, scaledMax);
+        var latest = values[^1];
+        var start = _history[0].Timestamp;
+        var end = _history[^1].Timestamp;
+        var mid = (scaledMin + scaledMax) / 2d;
+
+        return new ChartModel(
+            path,
+            $"{scaledMin:F1}{unit}",
+            $"{mid:F1}{unit}",
+            $"{scaledMax:F1}{unit}",
+            $"{latest:F1}{unit}",
+            start.ToString("HH:mm:ss"),
+            end.ToString("HH:mm:ss"));
+    }
+
+    private static string BuildPath(IReadOnlyList<double> values, double minY, double maxY)
+    {
+        const double left = 48;
+        const double right = 448;
+        const double top = 16;
+        const double bottom = 148;
+        var range = maxY - minY;
+        if (range <= 0) range = 1;
+
+        var stepX = values.Count > 1 ? (right - left) / (values.Count - 1) : 0;
+        var points = values.Select((v, i) =>
+        {
+            var normalized = Math.Clamp((v - minY) / range, 0, 1);
+            var x = left + i * stepX;
+            var y = bottom - normalized * (bottom - top);
+            return $"{x:F1},{y:F1}";
+        });
+
+        return "M " + string.Join(" L ", points);
+    }
+
+    private static string FormatMessage(string msg)
+    {
+        var sb = new System.Text.StringBuilder();
+        foreach (char c in msg)
+        {
+            if (char.IsControl(c) || c < 32 || c > 126)
+                sb.Append('$').Append(((int)c).ToString("X2"));
+            else
+                sb.Append(c);
+        }
+        return sb.ToString();
+    }
+
+    public void Dispose()
+    {
+        HistoryService.DataChanged -= OnDataChanged;
+    }
+
+    private sealed record ChartModel(
+        string Path,
+        string MinLabel,
+        string MidLabel,
+        string MaxLabel,
+        string LatestLabel,
+        string StartTimeLabel,
+        string EndTimeLabel);
+}
